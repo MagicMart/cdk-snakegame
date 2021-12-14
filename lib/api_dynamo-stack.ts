@@ -17,17 +17,31 @@ export class ApiDynamoStack extends Stack {
       autoDeleteObjects: true,
       removalPolicy: RemovalPolicy.DESTROY,
     });
-    const table = new dynamo.Table(this, 'ApiDynamoTable', {
-      partitionKey: { name: 'userID', type: dynamo.AttributeType.STRING },
-      sortKey: { name: 'score', type: dynamo.AttributeType.STRING },
+
+    const table = new dynamo.Table(this, 'ScoreboardTable', {
+      partitionKey: { name: 'UserName', type: dynamo.AttributeType.STRING },
+      sortKey: { name: 'BestScore', type: dynamo.AttributeType.NUMBER },
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
+    table.addGlobalSecondaryIndex({
+      indexName: 'score-index',
+      partitionKey: { name: 'Game', type: dynamo.AttributeType.STRING },
+      sortKey: { name: 'BestScore', type: dynamo.AttributeType.NUMBER },
+      projectionType: dynamo.ProjectionType.ALL,
+    });
     // defines an AWS Lambda resource
-    const hello = new lambda.Function(this, 'HelloHandler', {
+    const topScores = new lambda.Function(this, 'TopScoresHandler', {
       runtime: lambda.Runtime.NODEJS_14_X, // execution environment
       code: lambda.Code.fromAsset('lambda'), // code loaded from "lambda" directory
-      handler: 'hello.handler', // file is "hello", function is "handler"
+      handler: 'top.handler', // file is "hello", function is "handler"
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
     });
+
+    // grant read/write permissions to the table
+    table.grantReadData(topScores);
 
     // defines an API Gateway REST API resource backed by our "hello" function.
     // new apigw.LambdaRestApi(this, 'Endpoint', {
@@ -38,6 +52,6 @@ export class ApiDynamoStack extends Stack {
     });
     api.root
       .resourceForPath('/scoreboard/top')
-      .addMethod('GET', new apigw.LambdaIntegration(hello));
+      .addMethod('GET', new apigw.LambdaIntegration(topScores));
   }
 }
