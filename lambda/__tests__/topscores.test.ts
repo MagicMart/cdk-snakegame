@@ -1,5 +1,5 @@
-import { ScoreRepository } from '../../lambda/ScoreRepository'
-import { handler } from '../../lambda/top'
+import { ScoreRepository } from '../ScoreRepository'
+import { handler } from '../topscores'
 
 jest.mock('../../lambda/ScoreRepository', () => ({
   ScoreRepository: jest.fn().mockImplementation(() => {
@@ -31,7 +31,6 @@ beforeEach(() => {
 
 describe('top', () => {
   it('should return the top scores', async () => {
-    const scoreRepository = new ScoreRepository()
     const result = await handler()
     expect(result).toEqual({
       body: '[{"Game":"snake game","Score":10,"UserName":"user1"},{"Game":"snake game","Score":20,"UserName":"user2"}]',
@@ -39,7 +38,6 @@ describe('top', () => {
     })
   })
   it('should return an error message', async () => {
-    const scoreRepository = new ScoreRepository()
     const result = await handler()
     expect(result).toEqual({
       statusCode: 500,
