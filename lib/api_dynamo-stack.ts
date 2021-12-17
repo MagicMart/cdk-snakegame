@@ -62,7 +62,7 @@ export class ApiDynamoStack extends Stack {
       .resourceForPath('/scoreboard/topscores')
       .addMethod('GET', new apigw.LambdaIntegration(topScores))
     api.root
-      .resourceForPath('/scoreboard/{user}/updatescore/{score}')
+      .resourceForPath('/scoreboard/users/{user}/score')
       .addMethod('PUT', new apigw.LambdaIntegration(updateScore))
   }
 }
