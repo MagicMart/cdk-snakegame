@@ -1,4 +1,3 @@
-import { ScoreRepository } from '../ScoreRepository'
 import { handler } from '../topscores'
 
 jest.mock('../../lambda/ScoreRepository', () => ({
