@@ -46,10 +46,19 @@ export class ApiDynamoStack extends Stack {
         TABLE_NAME: table.tableName,
       },
     })
+    const getUser = new lambda.Function(this, 'GetUserHandler', {
+      runtime: lambda.Runtime.NODEJS_14_X, // execution environment
+      code: lambda.Code.fromAsset('lambda'), // code loaded from "lambda" directory
+      handler: 'getUser.handler', // file is "hello", function is "handler"
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+    })
 
     // grant read/write permissions to the table
     table.grantReadData(topScores)
     table.grantReadWriteData(updateScore)
+    table.grantReadData(getUser)
 
     // defines an API Gateway REST API resource backed by our "hello" function.
     // new apigw.LambdaRestApi(this, 'Endpoint', {
@@ -62,7 +71,10 @@ export class ApiDynamoStack extends Stack {
       .resourceForPath('/scoreboard/topscores')
       .addMethod('GET', new apigw.LambdaIntegration(topScores))
     api.root
-      .resourceForPath('/scoreboard/users/{user}/score')
+      .resourceForPath('/users/{user}')
+      .addMethod('GET', new apigw.LambdaIntegration(getUser))
+    api.root
+      .resourceForPath('/users/{user}/score')
       .addMethod('PUT', new apigw.LambdaIntegration(updateScore))
   }
 }

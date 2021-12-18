@@ -24,11 +24,20 @@ export class ScoreRepository extends DynamoDB.DocumentClient {
       TableName: process.env.TABLE_NAME!,
       Key: { UserName: user },
       UpdateExpression: 'set BestScore = :score',
+      ConditionExpression: 'attribute_exists(Game)',
       ExpressionAttributeValues: {
         ':score': score,
       },
     }
 
     return this.update(params).promise()
+  }
+  getUserByUserName(user: string): Promise<any> {
+    const params: DynamoDB.DocumentClient.GetItemInput = {
+      TableName: process.env.TABLE_NAME!,
+      Key: { UserName: user },
+    }
+
+    return this.get(params).promise()
   }
 }
